@@ -184,4 +184,9 @@ typedef enum {
  */
 - (void)indexBar:(GDIIndexBar *)indexBar didSelectIndex:(NSUInteger)index;
 
+/*!
+ * Informs the delegate that touch ended.
+ */
+- (void)indexBarTouchEnded:(GDIIndexBar *)indexBar;
+
 @end

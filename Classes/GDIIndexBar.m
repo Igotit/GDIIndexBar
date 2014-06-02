@@ -425,6 +425,9 @@ CGPoint CGPointAdd(CGPoint point1, CGPoint point2) {
     if ([touches containsObject:_currentTouch]) {
         self.highlighted = NO;
         _currentTouch = nil;
+        if ([self.delegate respondsToSelector:@selector(indexBarTouchEnded:)]) {
+            [self.delegate indexBarTouchEnded:self];
+        }
     }
 }
 
@@ -433,6 +436,9 @@ CGPoint CGPointAdd(CGPoint point1, CGPoint point2) {
     if ([touches containsObject:_currentTouch]) {
         self.highlighted = NO;
         _currentTouch = nil;
+        if ([self.delegate respondsToSelector:@selector(indexBarTouchEnded:)]) {
+            [self.delegate indexBarTouchEnded:self];
+        }
     }
 }
 
