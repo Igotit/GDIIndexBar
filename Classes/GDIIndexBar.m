@@ -152,7 +152,7 @@
     NSAssert(self.tableView, @"Table view cannot be nil.");
     
     _numberOfIndexes = [self.delegate numberOfIndexesForIndexBar:self];
-    _lineHeight = [@"0" sizeWithFont:self.textFont].height;
+    _lineHeight = [@"0" sizeWithAttributes:@{NSFontAttributeName:self.textFont}].height;
     _indexStrings = [NSMutableArray array];
     
     for (int i = 0; i < _numberOfIndexes; i++) {
@@ -185,7 +185,7 @@
     }
 }
 
-#pragma mark - Keyboard 
+#pragma mark - Keyboard
 
 - (void)handleKeyboardFrameChange:(NSNotificationCenter *)note
 {
@@ -281,20 +281,13 @@ CGPoint CGPointAdd(CGPoint point1, CGPoint point2) {
 {
     CGFloat indexRowHeight = _textSpacing + _lineHeight;
     CGFloat height = indexRowHeight * [self numberOfDisplayableRows] + _textSpacing * 2;
-    CGRect parentInsetRect = [_tableView.superview convertRect:_tableView.frame
-                                                        toView:self.superview];
-    
-    if ([self.superview isKindOfClass:[UIScrollView class]]) {
-        UIScrollView *scrollView = (UIScrollView *)self.superview;
-        parentInsetRect = UIEdgeInsetsInsetRect(scrollView.frame, scrollView.contentInset);
-    }
     
     CGFloat yp;
     switch (_verticalAlignment) {
         case GDIIndexBarAlignmentTop:
             yp = _textOffset.vertical;
             break;
-        
+            
         case GDIIndexBarAlignmentBottom:
             yp = self.frame.size.height - _textOffset.vertical - height;
             break;
@@ -304,7 +297,7 @@ CGPoint CGPointAdd(CGPoint point1, CGPoint point2) {
             yp = self.bounds.size.height * .5 - height * .5 + _textOffset.vertical;
             break;
     }
-
+    
     yp = fmaxf(0.f, yp);
     
     return CGRectMake(0, yp, _barWidth, height);
@@ -382,19 +375,19 @@ CGPoint CGPointAdd(CGPoint point1, CGPoint point2) {
     
     for (int i = 0; i < indexCount; i++) {
         NSString *text = [_displayedIndexStrings objectAtIndex:i];
-        CGSize textSize = [text sizeWithFont:self.textFont];
+        CGSize textSize = [text sizeWithAttributes:@{NSFontAttributeName:self.textFont}];
         CGPoint point = CGPointMake(rect.size.width * .5 - textSize.width * .5 + _textOffset.horizontal, yp);
-        CGPoint shadowPoint = CGPointAdd(point, CGPointMake(self.textShadowOffset.horizontal, self.textShadowOffset.vertical));
         
-        // draw shadow color
-        [self.textShadowColor set];
-        [text drawInRect:CGRectMake(shadowPoint.x, shadowPoint.y, textSize.width, _lineHeight)
-                withFont:self.textFont];
+        // make shadow
+        NSShadow *shadow = [[NSShadow alloc] init];
+        shadow.shadowColor = self.textShadowColor;
         
-        // draw normal color
-        [self.textColor set];
+        // draw text
         [text drawInRect:CGRectMake(point.x, point.y, textSize.width, _lineHeight)
-                withFont:self.textFont];
+          withAttributes:@{NSFontAttributeName: self.textFont,
+                           NSForegroundColorAttributeName: self.textColor,
+                           NSShadowAttributeName: shadow,
+                           }];
         
         yp += _lineHeight + _textSpacing;
     }
