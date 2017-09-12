@@ -21,6 +21,7 @@
 
 @implementation GDIIndexBar {
     NSUInteger _numberOfIndexes;
+    NSUInteger _lastSelectedStringIndex;
     CGFloat _lineHeight;
     NSDictionary *_textAttributes;
     UITouch *_currentTouch;
@@ -93,6 +94,8 @@
 
 - (void)initIndexBar
 {
+    _lastSelectedStringIndex = NSNotFound;
+
     self.exclusiveTouch = YES;
     self.multipleTouchEnabled = NO;
     
@@ -160,6 +163,7 @@
     }
     
     [self setNeedsLayout];
+    [self setNeedsDisplay];
 }
 
 
@@ -245,7 +249,11 @@
 {
     [super layoutSubviews];
     
-    self.frame = [self rectForIndexBarFrame];
+    
+    CGRect newFrame = [self rectForIndexBarFrame];
+    BOOL hasNewSize = !CGSizeEqualToSize(self.frame.size, newFrame.size);
+    
+    self.frame = newFrame;
     self.barBackgroundView.frame = [self rectForBarBackgroundView];
     
     // when our parent view is a table, make sure we are always on top.
@@ -254,7 +262,9 @@
         [self.superview bringSubviewToFront:self];
     }
     
-    [self setNeedsDisplay];
+    if(hasNewSize) {
+        [self setNeedsDisplay];
+    }
 }
 
 
@@ -344,6 +354,7 @@ CGPoint CGPointAdd(CGPoint point1, CGPoint point2) {
 - (void)deviceOrientationDidChange
 {
     [self setNeedsLayout];
+    [self setNeedsDisplay];
 }
 
 
@@ -422,6 +433,7 @@ CGPoint CGPointAdd(CGPoint point1, CGPoint point2) {
             [self.delegate indexBarTouchEnded:self];
         }
     }
+    _lastSelectedStringIndex = NSNotFound;
 }
 
 - (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event
@@ -433,6 +445,7 @@ CGPoint CGPointAdd(CGPoint point1, CGPoint point2) {
             [self.delegate indexBarTouchEnded:self];
         }
     }
+    _lastSelectedStringIndex = NSNotFound;
 }
 
 - (void)handleTouch:(UITouch *)touch
@@ -442,7 +455,10 @@ CGPoint CGPointAdd(CGPoint point1, CGPoint point2) {
         CGRect textAreaRect = [self rectForTextArea];
         CGFloat progress = fmaxf(0.f, fminf((touchPoint.y - textAreaRect.origin.y) / textAreaRect.size.height, .999f));
         NSUInteger stringIndex = floorf(progress * _indexStrings.count);
-        [self.delegate indexBar:self didSelectIndex:stringIndex];
+        if (stringIndex != _lastSelectedStringIndex) {
+            [self.delegate indexBar:self didSelectIndex:stringIndex];
+            _lastSelectedStringIndex = stringIndex;
+        }
     }
 }
 
